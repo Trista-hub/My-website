@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 5 Storybook: A Happy Picnic</title>
+    <style>
+        /* --- 整体背景 --- */
+        body {
+            font-family: "Comic Sans MS", "Microsoft YaHei", sans-serif;
+            background-color: #5D4037; /* 深木色桌面背景 */
+            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png'); /* 可选的木纹纹理 */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- 书本容器 --- */
+        .open-book {
+            background-color: #FFFBF0; /* 米黄色纸张 */
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+            display: flex;
+            position: relative;
+            border-radius: 10px;
+            box-shadow: 
+                0 0 0 5px #ECD0A3, /* 内页边框 */
+                0 0 0 15px #8D6E63, /* 书皮边框 */
+                0 20px 40px rgba(0,0,0,0.5); /* 整体投影 */
+            overflow: hidden;
+            flex-wrap: wrap; /* 移动端适配 */
+        }
+
+        /* --- 书脊效果 (中间的阴影) --- */
+        .spine-shadow {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+            margin-left: -30px;
+            background: linear-gradient(to right, 
+                rgba(0,0,0,0.05) 0%, 
+                rgba(0,0,0,0.15) 35%, 
+                rgba(0,0,0,0.2) 50%, 
+                rgba(0,0,0,0.15) 65%, 
+                rgba(0,0,0,0.05) 100%);
+            z-index: 10;
+            pointer-events: none; /* 让鼠标穿透阴影 */
+        }
+
+        /* --- 左右页面布局 --- */
+        .page {
+            flex: 1;
+            padding: 40px 50px;
+            box-sizing: border-box;
+            min-width: 350px; /* 防止过窄 */
+        }
+
+        .left-page {
+            border-right: 1px solid #E0E0E0;
+        }
+
+        /* --- 标题与图例 --- */
+        h1 {
+            text-align: center;
+            color: #D84315;
+            font-size: 2em;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: "Georgia", serif;
+            text-shadow: 1px 1px 0 #FFF;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+            color: #555;
+            background: rgba(255,255,255,0.6);
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px dashed #BCAAA4;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 纯色块图例 */
+        .swatch {
+            width: 24px;
+            height: 16px;
+            display: inline-block;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .swatch-green { background-color: #C8E6C9; border-bottom: 2px solid #388E3C; }
+        .swatch-pink { background-color: #F8BBD0; color: #D81B60; } /* 模拟文字高亮色 */
+
+        /* --- 句子行样式 --- */
+        .line-wrapper {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #E0E0E0; /* 作业本线条感 */
+            position: relative;
+        }
+
+        .sentence {
+            font-size: 1.15em;
+            line-height: 1.6;
+            color: #333;
+            display: inline;
+        }
+
+        /* 高亮具体样式 */
+        .tense {
+            background-color: #C8E6C9;
+            border-bottom: 2px solid #388E3C;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+
+        .word {
+            color: #C2185B;
+            font-weight: bold;
+            background-color: #FCE4EC;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+
+        /* --- 按钮组 --- */
+        .btn-group {
+            display: inline-flex;
+            gap: 5px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        button {
+            border: 1px solid #DDD;
+            background: #FFF;
+            cursor: pointer;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .btn-read { color: #1976D2; }
+        .btn-read:hover { background-color: #E3F2FD; }
+
+        .btn-trans { color: #F57C00; }
+        .btn-trans:hover { background-color: #FFF3E0; }
+
+        /* --- 翻译文本 --- */
+        .translation {
+            display: none;
+            color: #795548;
+            font-size: 0.95em;
+            margin-top: 5px;
+            font-style: italic;
+            background-color: rgba(0,0,0,0.03);
+            padding: 4px 8px;
+            border-radius: 5px;
+        }
+        
+        .show { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 装饰图片占位 (Emoji) */
+        .deco {
+            font-size: 2em;
+            float: right;
+            margin: 0 0 10px 10px;
+            opacity: 0.8;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="open-book">
+    <div class="spine-shadow"></div>
+
+    <!-- 左侧页面：第一段落 -->
+    <div class="page left-page">
+        <h1>A Happy Picnic</h1>
+        
+        <!-- 图例 -->
+        <div class="legend">
+            <div class="legend-item">
+                <span class="swatch swatch-green"></span>
+                <span>= Present Continuous (正在做)</span>
+            </div>
+            <div class="legend-item">
+                <span class="swatch swatch-pink"></span>
+                <span>= Key Words (重点词)</span>
+            </div>
+        </div>
+
+        <div class="deco">⚽️</div>
+        
+        <!-- 句子列表 -->
+        <div class="line-wrapper">
+            <span class="sentence">Today is a sunny Sunday.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">今天是一个阳光明媚的周日。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence"><span class="word">Everyone</span> is at the park now.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">大家现在都在公园里。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence">Look! Many families are here. <span class="tense">They are having a picnic</span>.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">看！很多家庭在这里。他们正在野餐。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence">Tom and Sam are brothers. <span class="tense">They are playing football</span> on the grass.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">汤姆和萨姆是兄弟。他们正在草地上踢足球。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence">They <span class="word">both</span> <span class="word">like</span> sports very much.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">他们两个都非常喜欢运动。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence">"Pass the ball!" shouts Tom. He looks very <span class="word">excited</span>.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">“传球！”汤姆喊道。他看起来非常兴奋。</div>
+        </div>
+        
+        <p style="text-align: center; color: #aaa; margin-top: 30px;">- 1 -</p>
+    </div>
+
+    <!-- 右侧页面：第二段落 -->
+    <div class="page right-page">
+        <div class="deco">🦋</div>
+        <div style="height: 20px;"></div> <!-- 占位符，对齐左侧标题高度 -->
+
+        <div class="line-wrapper">
+            <span class="sentence">Amy and Lily are quiet girls. <span class="tense">They are sitting</span> under a big tree.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">艾米和莉莉是安静的女孩。她们正坐在一棵大树下。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence">Amy <span class="tense">is reading a storybook</span>. Lily <span class="tense">is drawing a picture</span>.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">艾米正在读故事书。莉莉正在画画。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence">Where is Max the dog? Look! <span class="tense">He is chasing</span> a butterfly.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">小狗Max在哪里？看！他正在追蝴蝶。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence"><span class="tense">He is running</span> very fast. Max is so funny.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">他跑得非常快。Max太滑稽了。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence">It is lunch time now. Dad is hungry. <span class="tense">He is eating a sandwich</span>.</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">现在是午餐时间。爸爸饿了。他正在吃三明治。</div>
+        </div>
+
+        <div class="line-wrapper">
+            <span class="sentence"><span class="tense">We are drinking</span> juice. We <span class="word">like</span> our picnic day!</span>
+            <div class="btn-group">
+                <button class="btn-read" onclick="read(this)">🔊</button>
+                <button class="btn-trans" onclick="trans(this)">中</button>
+            </div>
+            <div class="translation">我们正在喝果汁。我们喜欢我们的野餐日！</div>
+        </div>
+
+        <p style="text-align: center; color: #aaa; margin-top: auto; padding-top: 30px;">- 2 -</p>
+    </div>
+</div>
+
+<script>
+    function read(btn) {
+        // 获取当前行文本
+        var wrapper = btn.closest('.line-wrapper');
+        var text = wrapper.querySelector('.sentence').innerText;
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.lang = 'en-US'; 
+            msg.rate = 0.85; 
+            msg.pitch = 1.1; 
+            window.speechSynthesis.speak(msg);
+        } else {
+            alert("浏览器不支持朗读");
+        }
+    }
+
+    function trans(btn) {
+        var wrapper = btn.closest('.line-wrapper');
+        var transBox = wrapper.querySelector('.translation');
+        
+        if (transBox.classList.contains('show')) {
+            transBox.classList.remove('show');
+            btn.style.backgroundColor = "#FFF";
+            btn.style.color = "#F57C00";
+        } else {
+            transBox.classList.add('show');
+            btn.style.backgroundColor = "#FFF3E0"; // 激活状态颜色
+        }
+    }
+</script>
+
+</body>
+</html>
