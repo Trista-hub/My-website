@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语情景对话拖拽练习</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .game-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .dialogue-box {
+            margin-bottom: 30px;
+            font-size: 18px;
+            line-height: 2.5; /* 增加行高以适应拖放 */
+        }
+
+        .line {
+            margin-bottom: 10px;
+        }
+
+        .role {
+            font-weight: bold;
+            margin-right: 5px;
+            color: #2c3e50;
+        }
+
+        /* 放置区域样式 */
+        .drop-zone {
+            display: inline-block;
+            width: 220px;
+            height: 35px;
+            border-bottom: 2px dashed #aaa;
+            vertical-align: middle;
+            margin: 0 5px;
+            background-color: #fafafa;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+            line-height: 35px; /* 垂直居中 */
+        }
+
+        .drop-zone.drag-over {
+            background-color: #e1f5fe;
+            border-bottom: 2px solid #2196f3;
+        }
+
+        /* 选项区域样式 */
+        .options-area {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background-color: #eef2f5;
+            border-radius: 10px;
+            min-height: 60px;
+            flex-wrap: wrap;
+        }
+
+        /* 可拖动元素样式 */
+        .draggable {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 16px;
+            user-select: none;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        /* 按钮样式 */
+        .btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button.reset {
+            background-color: #ff9800;
+        }
+        button.reset:hover {
+            background-color: #e68a00;
+        }
+
+        /* 反馈样式 */
+        .result-message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            height: 24px;
+        }
+
+        .correct {
+            border-bottom: 2px solid #4CAF50 !important;
+            background-color: #e8f5e9 !important;
+            color: #2e7d32;
+        }
+
+        .wrong {
+            border-bottom: 2px solid #f44336 !important;
+            background-color: #ffebee !important;
+            color: #c62828;
+        }
+
+        /* 隐藏原始位置的占位，如果是移动模式 */
+        .hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h2>情景对话填空</h2>
+    <p style="text-align:center; color:#666; font-size:14px;">请将下方的选项拖拽到对话中的横线上。</p>
+
+    <div class="dialogue-box">
+        <!-- 
+            正确逻辑：
+            空1 (豆花) 对应 选项2 (What's wrong with you?)
+            空2 (狗蛋) 对应 选项1 (What should I do?)
+        -->
+        <div class="line">
+            <span class="role">豆花：</span>
+            <span class="drop-zone" id="zone1" data-correct="opt2"></span>
+        </div>
+        <div class="line">
+            <span class="role">狗蛋：</span>
+            I have a toothache.
+        </div>
+        <div class="line">
+            <span class="role">狗蛋：</span>
+            <span class="drop-zone" id="zone2" data-correct="opt1"></span>
+        </div>
+        <div class="line">
+            <span class="role">医生：</span>
+            You should brush your teeth before bedtime.
+        </div>
+    </div>
+
+    <!-- 选项区域 -->
+    <div class="options-area" id="options-container" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <!-- 选项1 -->
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="opt1">
+            What should I do?
+        </div>
+        <!-- 选项2 -->
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="opt2">
+            What's wrong with you?
+        </div>
+    </div>
+
+    <div class="result-message" id="result-msg"></div>
+
+    <div class="btn-container">
+        <button onclick="checkAnswers()">提交答案</button>
+        <button class="reset" onclick="resetGame()">重置</button>
+    </div>
+</div>
+
+<script>
+    // 允许拖放
+    function allowDrop(ev) {
+        ev.preventDefault();
+        // 添加视觉提示
+        if (ev.target.classList.contains('drop-zone')) {
+            ev.target.classList.add('drag-over');
+        }
+    }
+
+    // 拖拽开始
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+        // 移除可能存在的离开效果
+        document.querySelectorAll('.drop-zone').forEach(el => el.classList.remove('drag-over'));
+    }
+
+    // 离开拖放区时移除视觉效果
+    document.addEventListener('dragleave', function(ev) {
+        if (ev.target.classList.contains('drop-zone')) {
+            ev.target.classList.remove('drag-over');
+        }
+    });
+
+    // 放置操作
+    function drop(ev) {
+        ev.preventDefault();
+        var data = ev.dataTransfer.getData("text");
+        var draggedElement = document.getElementById(data);
+        
+        // 移除drag-over样式
+        if (ev.target.classList.contains('drop-zone')) {
+            ev.target.classList.remove('drag-over');
+        }
+
+        // 逻辑：判断目标是 放置区(drop-zone) 还是 选项区(options-area)
+        // 如果是放置区
+        if (ev.target.classList.contains('drop-zone')) {
+            // 如果该区域已经有元素，先把它移回选项区（或者交换，这里简单处理为移回）
+            if (ev.target.hasChildNodes()) {
+                var existingChild = ev.target.firstChild;
+                document.getElementById('options-container').appendChild(existingChild);
+            }
+            ev.target.appendChild(draggedElement);
+        } 
+        // 如果是选项区（允许把答案拖回去）
+        else if (ev.target.id === 'options-container' || ev.target.parentNode.id === 'options-container') {
+            document.getElementById('options-container').appendChild(draggedElement);
+        }
+        
+        // 清除之前的反馈状态
+        resetStyles();
+    }
+
+    // 检查答案
+    function checkAnswers() {
+        var zone1 = document.getElementById('zone1');
+        var zone2 = document.getElementById('zone2');
+        var msg = document.getElementById('result-msg');
+        
+        // 获取每个区域内的元素ID
+        var ans1 = zone1.children.length > 0 ? zone1.children[0].id : null;
+        var ans2 = zone2.children.length > 0 ? zone2.children[0].id : null;
+
+        var isAllCorrect = true;
+
+        // 检查第一个空 (应该是 opt2)
+        if (ans1 === 'opt2') {
+            zone1.classList.add('correct');
+            zone1.classList.remove('wrong');
+        } else {
+            zone1.classList.add('wrong');
+            zone1.classList.remove('correct');
+            isAllCorrect = false;
+        }
+
+        // 检查第二个空 (应该是 opt1)
+        if (ans2 === 'opt1') {
+            zone2.classList.add('correct');
+            zone2.classList.remove('wrong');
+        } else {
+            zone2.classList.add('wrong');
+            zone2.classList.remove('correct');
+            isAllCorrect = false;
+        }
+
+        if (isAllCorrect) {
+            msg.style.color = 'green';
+            msg.innerText = "恭喜你！答案正确！🎉";
+        } else {
+            msg.style.color = 'red';
+            msg.innerText = "答案有误，请调整后重试。";
+        }
+    }
+
+    // 重置样式
+    function resetStyles() {
+        var zones = document.querySelectorAll('.drop-zone');
+        zones.forEach(zone => {
+            zone.classList.remove('correct', 'wrong', 'drag-over');
+        });
+        document.getElementById('result-msg').innerText = "";
+    }
+
+    // 重置游戏
+    function resetGame() {
+        var container = document.getElementById('options-container');
+        var opt1 = document.getElementById('opt1');
+        var opt2 = document.getElementById('opt2');
+        
+        // 将选项放回原处
+        container.appendChild(opt1);
+        container.appendChild(opt2);
+        
+        resetStyles();
+    }
+
+    // 为所有放置区添加drop监听（辅助确保事件绑定）
+    var dropZones = document.querySelectorAll('.drop-zone');
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', allowDrop);
+        zone.addEventListener('drop', drop);
+    });
+</script>
+
+</body>
+</html>
