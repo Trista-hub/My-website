@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Happy Picnic - Grade 5 English Storybook</title>
+    <style>
+        :root {
+            --btn-main: #ff6f61;
+        }
+
+        body {
+            background: #fdf6e3;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+        }
+
+        /* 绘本主容器 */
+        .book-container {
+            width: 1000px;
+            height: 650px;
+            background: white;
+            display: flex;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+            border-radius: 25px;
+            border: 12px solid #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 左侧：插图区 */
+        .illustration-panel {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            border-right: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        /* 右侧：文字内容区 */
+        .text-panel {
+            flex: 1.2;
+            padding: 25px 40px; 
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; 
+            overflow: hidden; /* 彻底禁止滚动条 */
+        }
+
+        /* 场景背景 */
+        .scene { 
+            width: 100%; height: 100%; 
+            position: absolute; display: none; 
+            top: 0; left: 0;
+        }
+        .scene.active { display: block; animation: fadeIn 0.6s ease; }
+
+        .bg-cover { background: linear-gradient(135deg, #ffb6c1 0%, #87ceeb 35%, #ffd700 70%, #b2feca 100%); }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-1 { animation: float 4s ease-in-out infinite; }
+        .float-2 { animation: float 5s ease-in-out infinite 1s; }
+        .float-3 { animation: float 4.5s ease-in-out infinite 0.5s; }
+        .float-4 { animation: float 5.5s ease-in-out infinite 1.5s; }
+
+        .bg-spring { background: linear-gradient(to bottom, #81d4fa 0%, #c8e6c9 100%); }
+        .bg-summer { background: linear-gradient(to bottom, #4fc3f7 0%, #fff9c4 100%); }
+        .bg-autumn { background: linear-gradient(to bottom, #ffcc80 0%, #fff3e0 100%); }
+        .bg-winter { background: linear-gradient(to bottom, #cfd8dc 0%, #ffffff 100%); }
+
+        .sun { position: absolute; top: 40px; right: 40px; font-size: 80px; }
+        .cloud { position: absolute; top: 60px; left: 40px; font-size: 50px; opacity: 0.8; }
+        .item { position: absolute; transition: all 0.5s ease-out; }
+
+        /* ---------------- 排版与文字格式 ---------------- */
+        h2 { 
+            color: var(--btn-main); 
+            font-size: 26px; 
+            margin: 0 0 15px 0; 
+            border-bottom: 2px solid #eee; 
+            padding-bottom: 10px; 
+        }
+        
+        .word-hl { background: #ffebee; color: #c62828; font-weight: bold; padding: 2px 6px; border-radius: 6px; } 
+        .sent-hl-question { background: #e8f5e9; color: #1b5e20; font-weight: bold; padding: 2px 6px; border-radius: 6px; } 
+        .sent-hl-answer { background: #e8f5e9; color: #1b5e20; font-weight: bold; padding: 2px 6px; border-radius: 6px; } 
+
+        /* 句子列表容器，无滚动条 */
+        .sentences-container {
+            flex: 1;
+            overflow: hidden; 
+        }
+
+        /* 保持行间距不变：每段的留白 */
+        .sentence-block {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 2px dashed #e0e0e0; 
+        }
+        .sentence-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .sentence-en {
+            font-size: 19px;
+            line-height: 1.6;
+            color: #333;
+            display: inline; 
+        }
+
+        /* 紧跟文字的按钮组 */
+        .inline-btns {
+            display: inline-flex;
+            gap: 8px;
+            vertical-align: middle;
+            margin-left: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #dcdcdc;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+            transition: all 0.2s ease;
+        }
+        .icon-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* 翻译展开框 */
+        .translation-box {
+            display: none;
+            margin-top: 8px;
+            font-size: 16px;
+            color: #e65100;
+            background: #fff3e0;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffb74d;
+        }
+
+        /* 底部导航 */
+        .nav-controls { margin-top: 20px; display: flex; align-items: center; gap: 40px; }
+        .nav-btn {
+            background: var(--btn-main); color: white; border: none;
+            padding: 10px 50px; border-radius: 30px; font-size: 18px;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(255,111,97,0.3);
+        }
+        .nav-btn:disabled { background: #cfd8dc; cursor: not-allowed; }
+        .page-num { font-size: 18px; font-weight: bold; color: #b0bec5; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="book-container">
+        <!-- 插图区 -->
+        <div class="illustration-panel">
+            <div class="scene bg-cover active" id="img0">
+                <h1 style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; color: white; text-shadow: 6px 6px 0px #ff6f61, 10px 10px 20px rgba(0,0,0,0.2); margin: 0; z-index: 10; white-space: nowrap;">Four Seasons</h1>
+                <div style="position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; color: #fff; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); z-index: 10; letter-spacing: 2px; background: rgba(0,0,0,0.1); padding: 5px 20px; border-radius: 20px;">A Happy Picnic Storybook</div>
+                
+                <div class="item float-1" style="top: 10%; left: 15%; font-size: 90px;">🌸</div>
+                <div class="item float-2" style="top: 22%; left: 28%; font-size: 60px;">🦋</div>
+                <div class="item float-3" style="top: 8%; right: 15%; font-size: 100px;">☀️</div>
+                <div class="item float-4" style="top: 25%; right: 28%; font-size: 70px;">🍉</div>
+                <div class="item float-2" style="bottom: 12%; left: 15%; font-size: 90px;">🍁</div>
+                <div class="item float-1" style="bottom: 25%; left: 28%; font-size: 60px;">🍎</div>
+                <div class="item float-4" style="bottom: 10%; right: 15%; font-size: 100px;">⛄</div>
+                <div class="item float-3" style="bottom: 26%; right: 28%; font-size: 60px;">❄️</div>
+            </div>
+
+            <div class="scene bg-spring" id="img1">
+                <div class="sun">☀️</div><div class="cloud">☁️</div>
+                <div class="item" style="bottom:10px; left:20px; font-size:160px;">🌳</div>
+                <div class="item" style="bottom:20px; left:220px; font-size:60px;">🌸</div>
+                <div class="item" style="top:220px; left:260px; font-size:45px;">🦋</div>
+                <div class="item" style="bottom:15px; left:300px; font-size:100px;">🧺</div>
+            </div>
+            <div class="scene bg-summer" id="img2">
+                <div class="sun">😎☀️</div>
+                <div class="item" style="bottom:0; left:0; width:100%; height:200px; background:rgba(255,255,255,0.3);"></div>
+                <div class="item" style="bottom:210px; left:50px; font-size:60px;">🥥</div>
+                <div class="item" style="bottom:40px; right:70px; font-size:90px;">🦀</div>
+                <div class="item" style="bottom:50px; left:130px; font-size:40px;">🐚</div>
+                <div class="item" style="top:80px; left:60px; font-size:50px;">☁️</div>
+            </div>
+            <div class="scene bg-autumn" id="img3">
+                <div class="sun">☀️</div>
+                <div class="item" style="bottom:0; left:30px; font-size:180px;">🌳</div>
+                <div class="item" style="top:180px; left:50px; font-size:40px;">🍊</div>
+                <div class="item" style="top:260px; left:110px; font-size:40px;">🍊</div>
+                <div class="item" id="fall-orange" style="top:210px; left:140px; font-size:40px;">🍊</div>
+                <div class="item" style="bottom:20px; right:50px; font-size:90px;">🌾</div>
+            </div>
+            <div class="scene bg-winter" id="img4">
+                <div class="item" style="top:50px; left:60px; font-size:50px;">❄️</div>
+                <div class="item" style="bottom:10px; left:40px; font-size:160px;">🌲</div>
+                <div class="item" style="bottom:10px; left:220px; font-size:130px;">🌲</div>
+                <div class="item" style="bottom:10px; right:40px; font-size:140px;">⛄</div>
+                <div class="item" style="top:120px; right:80px; font-size:45px;">❄️</div>
+            </div>
+        </div>
+
+        <!-- 右侧文字区 -->
+        <div class="text-panel" id="content-display"></div>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="pBtn" onclick="turn(-1)" disabled>上一页</button>
+        <div class="page-num">第 <span id="curPage">1</span> / <span id="totPage">9</span> 页</div>
+        <button class="nav-btn" id="nBtn" onclick="turn(1)">下一页</button>
+    </div>
+
+    <script>
+        // 将原本一章3页合并为2页，每页约4-5句话，刚好铺满右侧空间且不溢出
+        const storyData = [
+            { isCover: true },
+            {
+                bgId: "img1",
+                title: "Chapter 1: The Sweet Spring (1)",
+                sentences: [
+                    { en: "The winter is over. Now it is <span class='word-hl'>spring</span>!", zh: "冬天结束了。现在是春天！" },
+                    { en: "The weather is warm and windy.", zh: "天气温暖多风。" },
+                    { en: "Bart, Annie and Adam are having a happy picnic in the forest park.", zh: "Bart、Annie和Adam正在森林公园里进行愉快的野餐。" },
+                    { en: "Look! The grass is green and the flowers are beginning to grow everywhere.", zh: "看！草变绿了，到处都开始长出花朵。" },
+                    { en: "There are many pink and purple flowers on the bush.", zh: "灌木丛上有很多粉色和紫色的花。" }
+                ]
+            },
+            {
+                bgId: "img1",
+                title: "Chapter 1: The Sweet Spring (2)",
+                sentences: [
+                    { en: "Annie sees two beautiful butterflies dancing in the fresh air. One is yellow and the other is blue.", zh: "Annie看到两只美丽的蝴蝶在清新的空气中飞舞。一只是黄色的，另一只是蓝色的。" },
+                    { en: "Bart is opening the picnic basket.", zh: "Bart正在打开野餐篮。" },
+                    { en: "<span class='sent-hl-question'>“Which season do you like best?”</span> says Annie.", zh: "Annie说：“你最喜欢哪个季节？”" },
+                    { en: "<span class='sent-hl-answer'>“I like <span class='word-hl'>spring</span> best because the flowers are so pretty,”</span> says Annie.", zh: "Annie说：“我最喜欢春天，因为花朵非常漂亮。”" },
+                    { en: "It is a wonderful <span class='word-hl'>season</span> to play outside with friends.", zh: "这是一个和朋友在户外玩耍的美妙季节。" }
+                ]
+            },
+            {
+                bgId: "img2",
+                title: "Chapter 2: The Sunny Summer (1)",
+                sentences: [
+                    { en: "Now it is <span class='word-hl'>summer</span>. It is hot and sunny. The sun is wearing cool sunglasses!", zh: "现在是夏天。天气炎热且阳光明媚。太阳戴着酷酷的墨镜！" },
+                    { en: "Bart, Annie and Adam go to the beach. The sea is blue and deep.", zh: "Bart、Annie和Adam去了海滩。大海蔚蓝深邃。" },
+                    { en: "Adam finds a small coconut in the water.", zh: "Adam在水里找到了一个小椰子。" },
+                    { en: "Look at the golden sand! There is a little red crab.", zh: "看那金色的沙滩！那里有一只小红蟹。" },
+                    { en: "He is waving his hands to say hello to the children.", zh: "它正挥舞着钳子向孩子们问好。" }
+                ]
+            },
+            {
+                bgId: "img2",
+                title: "Chapter 2: The Sunny Summer (2)",
+                sentences: [
+                    { en: "In <span class='word-hl'>summer</span>, people love to go swimming and eat cold ice cream.", zh: "在夏天，人们喜欢去游泳和吃冷饮。" },
+                    { en: "It is a great <span class='word-hl'>season</span> for a big vacation.", zh: "这是一个很棒的假期季节。" },
+                    { en: "<span class='sent-hl-question'>“Which season do you like best, Bart?”</span> Annie asks.", zh: "Annie问：“Bart，你最喜欢哪个季节？”" },
+                    { en: "<span class='sent-hl-answer'>“I like <span class='word-hl'>summer</span> most because I can go swimming,”</span> says Bart.", zh: "Bart说：“我最喜欢夏天，因为我可以去游泳。”" }
+                ]
+            },
+            {
+                bgId: "img3",
+                title: "Chapter 3: The Golden Autumn (1)",
+                sentences: [
+                    { en: "The wind is cool and the sky is blue. It is <span class='word-hl'>autumn</span> now.", zh: "风很凉爽，天空很蓝。现在是秋天。" },
+                    { en: "The leaves on the trees turn yellow and brown.", zh: "树上的叶子变成了黄色和棕色。" },
+                    { en: "Annie and Adam are in the orchard. The orange trees are full of big fruit.", zh: "Annie和Adam在果园里。橘子树上结满了大大的果实。" },
+                    { en: "Look! One orange is falling down. It is time for the harvest.", zh: "看！一个橘子掉下来了。现在是收获的季节。" },
+                    { en: "The farmers are busy picking fruit and moving hay in the fields.", zh: "农民们正忙着在田里摘水果和搬运干草。" }
+                ]
+            },
+            {
+                bgId: "img3",
+                title: "Chapter 3: The Golden Autumn (2)",
+                sentences: [
+                    { en: "Bart likes this <span class='word-hl'>season</span> because he can go hiking. The mountains are very colorful.", zh: "Bart喜欢这个季节因为他可以去远足。山上的颜色非常丰富。" },
+                    { en: "<span class='sent-hl-question'>“Why do you like <span class='word-hl'>autumn</span> best, Adam?”</span> asks Bart.", zh: "Bart问：“Adam，你为什么最喜欢秋天？”" },
+                    { en: "<span class='sent-hl-answer'>“Because I can pick and eat sweet oranges!”</span> Adam answers.", zh: "Adam回答说：“因为我可以摘甜甜的橘子吃！”" },
+                    { en: "<span class='sent-hl-question'>“Which season do you like best, Bart?”</span> asks Adam.", zh: "Adam问：“Bart，你最喜欢哪个季节？”" },
+                    { en: "<span class='sent-hl-answer'>“I like <span class='word-hl'>autumn</span> best. The colorful leaves are beautiful,”</span> Bart replies.", zh: "Bart回答说：“我最喜欢秋天。五颜六色的叶子真美。”" }
+                ]
+            },
+            {
+                bgId: "img4",
+                title: "Chapter 4: The White Winter (1)",
+                sentences: [
+                    { en: "Brrr! It is so cold now. Everything is white because it is <span class='word-hl'>winter</span>.", zh: "好冷啊！现在一切都是白色的，因为冬天到了。" },
+                    { en: "Bart, Annie and Adam are wearing thick coats, scarves and hats.", zh: "Bart、Annie和Adam穿着厚厚的外套，戴着围巾和帽子。" },
+                    { en: "They are shivering because of the cold wind, but they are still happy.", zh: "因为冷风他们在发抖，但他们仍然很开心。" },
+                    { en: "The pine trees are covered with white snow. They look like big Christmas trees.", zh: "松树被白雪覆盖着，看起来像巨大的圣诞树。" }
+                ]
+            },
+            {
+                bgId: "img4",
+                title: "Chapter 4: The White Winter (2)",
+                sentences: [
+                    { en: "Adam is making a big snowman on the ground.", zh: "Adam正在地上堆一个大雪人。" },
+                    { en: "They are having a snowball fight together.", zh: "他们正在一起打雪仗。" },
+                    { en: "<span class='sent-hl-question'>“Which season do you like best?”</span> Annie asks.", zh: "Annie问：“你最喜欢哪个季节？”" },
+                    { en: "<span class='sent-hl-answer'>“I like <span class='word-hl'>winter</span> best because I like <span class='word-hl'>winter</span> vacation!”</span> says Bart.", zh: "Bart说：“我最喜欢冬天，因为我喜欢寒假！”" },
+                    { en: "It is a very special <span class='word-hl'>season</span> for everyone.", zh: "这对大家来说是一个非常特别的季节。" }
+                ]
+            }
+        ];
+
+        let cur = 0;
+        document.getElementById('totPage').innerText = storyData.length;
+
+        function refresh() {
+            const data = storyData[cur];
+            const textPanel = document.getElementById('content-display');
+            const illPanel = document.querySelector('.illustration-panel');
+
+            if (data.isCover) {
+                textPanel.style.display = 'none';
+                illPanel.style.borderRight = 'none';
+                textPanel.innerHTML = ''; 
+                document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+                document.getElementById('img0').classList.add('active');
+            } else {
+                textPanel.style.display = 'flex';
+                illPanel.style.borderRight = '2px solid #f0f0f0';
+
+                let html = `<h2>${data.title}</h2>`;
+                html += `<div class="sentences-container">`;
+                
+                data.sentences.forEach((s, index) => {
+                    html += `
+                    <div class="sentence-block">
+                        <div class="sentence-en">${s.en}</div>
+                        <div class="inline-btns">
+                            <button class="icon-btn" onclick="speak(${cur}, ${index})" title="跟读">🔊</button>
+                            <button class="icon-btn" style="color:#f57c00;" onclick="toggleT(${cur}, ${index})" title="翻译">中</button>
+                        </div>
+                        <div id="t_${cur}_${index}" class="translation-box">${s.zh}</div>
+                    </div>`;
+                });
+                
+                html += `</div>`;
+                textPanel.innerHTML = html;
+
+                document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+                document.getElementById(data.bgId).classList.add('active');
+            }
+            
+            document.getElementById('pBtn').disabled = cur === 0;
+            document.getElementById('nBtn').disabled = cur === storyData.length - 1;
+            document.getElementById('curPage').innerText = cur + 1;
+
+            if(data.bgId === "img3") {
+                setTimeout(() => { 
+                    const el = document.getElementById('fall-orange');
+                    if(el) el.style.transform = "translateY(240px)"; 
+                }, 400);
+            } else {
+                const el = document.getElementById('fall-orange');
+                if(el) el.style.transform = "translateY(0)";
+            }
+        }
+
+        function turn(dir) {
+            cur += dir;
+            window.speechSynthesis.cancel();
+            refresh();
+        }
+
+        // 手风琴式展开逻辑：打开当前翻译时，自动关闭其他翻译，以保证即使全5句也不会越界
+        function toggleT(c, i) {
+            const currentEl = document.getElementById('t_' + c + '_' + i);
+            const isCurrentlyBlock = (currentEl.style.display === 'block');
+
+            // 隐藏同页面的其他所有翻译框
+            document.querySelectorAll('.translation-box').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // 切换当前点击框的状态
+            if (!isCurrentlyBlock) {
+                currentEl.style.display = 'block';
+            }
+        }
+
+        function speak(c, i) {
+            window.speechSynthesis.cancel();
+            const rawText = storyData[c].sentences[i].en;
+            const cleanText = rawText.replace(/<[^>]*>?/gm, '').replace(/[“”""]/g, '');
+            const msg = new SpeechSynthesisUtterance(cleanText);
+            msg.lang = 'en-US';
+            msg.rate = 0.85; 
+            window.speechSynthesis.speak(msg);
+        }
+
+        refresh();
+    </script>
+</body>
+</html>
