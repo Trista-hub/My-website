@@ -71,13 +71,19 @@
         .float-3 { animation: float 4.5s ease-in-out infinite 0.5s; }
         .float-4 { animation: float 5.5s ease-in-out infinite 1.5s; }
 
-        .bg-spring { background: linear-gradient(to bottom, #81d4fa 0%, #c8e6c9 100%); }
-        .bg-summer { background: linear-gradient(to bottom, #4fc3f7 0%, #fff9c4 100%); }
-        .bg-autumn { background: linear-gradient(to bottom, #ffcc80 0%, #fff3e0 100%); }
-        .bg-winter { background: linear-gradient(to bottom, #cfd8dc 0%, #ffffff 100%); }
+        .season-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
 
-        .sun { position: absolute; top: 40px; right: 40px; font-size: 80px; }
-        .cloud { position: absolute; top: 60px; left: 40px; font-size: 50px; opacity: 0.8; }
+        /* 夏天：优先保留右上角的完整太阳 */
+        #img2 .season-img {
+            object-position: 92% 8%;
+        }
+
         .item { position: absolute; transition: all 0.5s ease-out; }
 
         /* ---------------- 排版与文字格式 ---------------- */
@@ -192,35 +198,17 @@
                 <div class="item float-3" style="bottom: 26%; right: 28%; font-size: 60px;">❄️</div>
             </div>
 
-            <div class="scene bg-spring" id="img1">
-                <div class="sun">☀️</div><div class="cloud">☁️</div>
-                <div class="item" style="bottom:10px; left:20px; font-size:160px;">🌳</div>
-                <div class="item" style="bottom:20px; left:220px; font-size:60px;">🌸</div>
-                <div class="item" style="top:220px; left:260px; font-size:45px;">🦋</div>
-                <div class="item" style="bottom:15px; left:300px; font-size:100px;">🧺</div>
+            <div class="scene" id="img1">
+                <img class="season-img" src="images/spring.png" alt="Spring — flowers, butterflies and green park">
             </div>
-            <div class="scene bg-summer" id="img2">
-                <div class="sun">😎☀️</div>
-                <div class="item" style="bottom:0; left:0; width:100%; height:200px; background:rgba(255,255,255,0.3);"></div>
-                <div class="item" style="bottom:210px; left:50px; font-size:60px;">🥥</div>
-                <div class="item" style="bottom:40px; right:70px; font-size:90px;">🦀</div>
-                <div class="item" style="bottom:50px; left:130px; font-size:40px;">🐚</div>
-                <div class="item" style="top:80px; left:60px; font-size:50px;">☁️</div>
+            <div class="scene" id="img2">
+                <img class="season-img" src="images/summer.png" alt="Summer — sunny beach with crab and coconut">
             </div>
-            <div class="scene bg-autumn" id="img3">
-                <div class="sun">☀️</div>
-                <div class="item" style="bottom:0; left:30px; font-size:180px;">🌳</div>
-                <div class="item" style="top:180px; left:50px; font-size:40px;">🍊</div>
-                <div class="item" style="top:260px; left:110px; font-size:40px;">🍊</div>
-                <div class="item" id="fall-orange" style="top:210px; left:140px; font-size:40px;">🍊</div>
-                <div class="item" style="bottom:20px; right:50px; font-size:90px;">🌾</div>
+            <div class="scene" id="img3">
+                <img class="season-img" src="images/autumn.png" alt="Autumn — orange trees and harvest">
             </div>
-            <div class="scene bg-winter" id="img4">
-                <div class="item" style="top:50px; left:60px; font-size:50px;">❄️</div>
-                <div class="item" style="bottom:10px; left:40px; font-size:160px;">🌲</div>
-                <div class="item" style="bottom:10px; left:220px; font-size:130px;">🌲</div>
-                <div class="item" style="bottom:10px; right:40px; font-size:140px;">⛄</div>
-                <div class="item" style="top:120px; right:80px; font-size:45px;">❄️</div>
+            <div class="scene" id="img4">
+                <img class="season-img" src="images/winter.png" alt="Winter — snow and children in warm coats">
             </div>
         </div>
 
@@ -371,15 +359,6 @@
             document.getElementById('nBtn').disabled = cur === storyData.length - 1;
             document.getElementById('curPage').innerText = cur + 1;
 
-            if(data.bgId === "img3") {
-                setTimeout(() => { 
-                    const el = document.getElementById('fall-orange');
-                    if(el) el.style.transform = "translateY(240px)"; 
-                }, 400);
-            } else {
-                const el = document.getElementById('fall-orange');
-                if(el) el.style.transform = "translateY(0)";
-            }
         }
 
         function turn(dir) {
